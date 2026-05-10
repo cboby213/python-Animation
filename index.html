@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>python Cursor</title>
+
+<style>
+    *{
+        margin:0;
+        padding:0;
+        box-sizing:border-box;
+    }
+
+    body{
+        overflow:hidden;
+        background:#f5f1ea;
+        cursor:none;
+    }
+
+    canvas{
+        display:block;
+    }
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let mouse = {
+    x: canvas.width / 2,
+    y: canvas.height / 2
+};
+
+const dragon = [];
+const segments = 40;
+
+for(let i = 0; i < segments; i++){
+    dragon.push({
+        x: mouse.x,
+        y: mouse.y,
+        size: 22 - i * 0.4
+    });
+}
+
+window.addEventListener("mousemove", (e)=>{
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+});
+
+function drawDragon(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // Background
+    ctx.fillStyle = "#f5f1ea";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // python movement
+    dragon[0].x += (mouse.x - dragon[0].x) * 0.25;
+    dragon[0].y += (mouse.y - dragon[0].y) * 0.25;
+
+    for(let i = 1; i < dragon.length; i++){
+
+        let dx = dragon[i-1].x - dragon[i].x;
+        let dy = dragon[i-1].y - dragon[i].y;
+
+        dragon[i].x += dx * 0.35;
+        dragon[i].y += dy * 0.35;
+    }
+
+    // Draw body
+    for(let i = dragon.length - 1; i >= 0; i--){
+
+        let part = dragon[i];
+
+        ctx.beginPath();
+
+        let gradient = ctx.createRadialGradient(
+            part.x,
+            part.y,
+            2,
+            part.x,
+            part.y,
+            part.size
+        );
+
+        gradient.addColorStop(0, "#000");
+        gradient.addColorStop(1, "rgba(80,80,80,0.1)");
+
+        ctx.fillStyle = gradient;
+
+        ctx.arc(part.x, part.y, part.size, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Spine effect
+        if(i % 2 === 0){
+
+            ctx.beginPath();
+            ctx.strokeStyle = "rgba(0,0,0,0.35)";
+            ctx.lineWidth = 2;
+
+            ctx.moveTo(part.x, part.y);
+
+            ctx.lineTo(
+                part.x + Math.sin(i) * 20,
+                part.y - 25
+            );
+
+            ctx.stroke();
+        }
+    }
+
+    // python head
+    let head = dragon[0];
+
+    ctx.beginPath();
+    ctx.fillStyle = "#000";
+    ctx.arc(head.x, head.y, 16, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Eyes
+    ctx.beginPath();
+    ctx.fillStyle = "white";
+    ctx.arc(head.x + 5, head.y - 4, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Wings
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(0,0,0,0.5)";
+    ctx.lineWidth = 2;
+
+    ctx.moveTo(head.x - 10, head.y);
+    ctx.lineTo(head.x - 60, head.y - 50);
+
+    ctx.moveTo(head.x - 10, head.y);
+    ctx.lineTo(head.x - 60, head.y + 50);
+
+    ctx.stroke();
+
+    requestAnimationFrame(drawDragon);
+}
+
+drawDragon();
+
+window.addEventListener("resize", ()=>{
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+});
+</script>
+
+</body>
+</html>
